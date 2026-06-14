@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FIFA World Cup 2026 Simulator
 
-## Getting Started
+An interactive tournament simulator for the 2026 FIFA World Cup, featuring all 48 teams across 12 groups, a full knockout bracket, and AI-powered match analysis.
 
-First, run the development server:
+## Features
+
+- **Group Stage** — Enter scores for all group fixtures; standings update automatically with points, goal difference, and tiebreakers
+- **Best Third Selection** — Automatically picks the 4 best third-place teams to advance per official FIFA rules
+- **Knockout Bracket** — Full bracket from Round of 32 through the Final, with penalty shootout support
+- **AI Match Analysis** — Get tactical breakdowns of any match powered by GPT-4o-mini
+- **Persistent State** — Your simulation is saved to localStorage so you can pick up where you left off
+- **Reset** — Start the tournament over at any time
+
+## Tech Stack
+
+- [Next.js 14](https://nextjs.org/) (App Router)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Zustand](https://zustand-demo.pmnd.rs/) — global state with persistence
+- [shadcn/ui](https://ui.shadcn.com/) — UI components
+- [Recharts](https://recharts.org/) — charts
+- [OpenAI API](https://platform.openai.com/) — streaming match analysis
+
+## Prerequisites
+
+- Node.js 18+
+- An [OpenAI API key](https://platform.openai.com/api-keys)
+
+## Setup
+
+```bash
+# 1. Clone the repo
+git clone <repo-url>
+cd worl_cup_2026_simulator
+
+# 2. Install dependencies
+npm install
+
+# 3. Set up environment variables
+cp .env.example .env.local
+# Then edit .env.local and add your OpenAI API key
+```
+
+### Environment Variables
+
+Create a `.env.local` file in the project root:
+
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+## Running Locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## How to Use
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Group Stage** — Click any group on the home page, then enter scores for each match. The standings table updates in real time.
+2. **Advance to Knockout** — Once all group matches have scores, go to the Bracket page and click "Populate Bracket" to seed the Round of 32.
+3. **Knockout Stage** — Enter scores match by match. Winners advance automatically. For draws, select the penalty winner.
+4. **AI Analysis** — On any match page, click "Analyze" to get a tactical breakdown of the matchup.
+5. **Reset** — Use the reset button to clear all scores and start over.
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+├── app/
+│   ├── api/analyze/        # Streaming AI analysis endpoint
+│   ├── bracket/            # Knockout bracket page
+│   ├── groups/[id]/        # Group detail page
+│   └── match/[id]/analysis/# Match analysis page
+├── components/             # UI components (GroupCard, BracketView, ScoreInput, ...)
+├── data/                   # Static data (teams, groups, bracket seeding)
+├── lib/                    # Simulator logic (table computation, tiebreakers)
+└── store/                  # Zustand store
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
