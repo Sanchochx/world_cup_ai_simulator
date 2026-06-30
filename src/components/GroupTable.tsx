@@ -6,9 +6,10 @@ import FlagImage from './FlagImage';
 
 interface Props {
   rows: TeamRow[];
+  qualifyingThirdId?: string | null;
 }
 
-export default function GroupTable({ rows }: Props) {
+export default function GroupTable({ rows, qualifyingThirdId }: Props) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -29,10 +30,11 @@ export default function GroupTable({ rows }: Props) {
         <tbody>
           {rows.map((row, i) => {
             const team = teams[row.teamId];
+            const isQualifyingThird = i === 2 && qualifyingThirdId === row.teamId;
             const rowClass =
               i < 2
                 ? 'bg-green-900/20 border-l-2 border-l-green-500'
-                : i === 2
+                : isQualifyingThird
                 ? 'bg-yellow-900/20 border-l-2 border-l-yellow-500'
                 : 'border-l-2 border-l-transparent';
 
@@ -65,7 +67,9 @@ export default function GroupTable({ rows }: Props) {
       </table>
       <div className="flex gap-4 mt-3 px-3 text-xs text-muted">
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span> Advances (Top 2)</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-500 inline-block"></span> Best 3rd pool</span>
+        {qualifyingThirdId && (
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-500 inline-block"></span> Qualifies as Best 3rd</span>
+        )}
       </div>
     </div>
   );

@@ -31,6 +31,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </nav>
         <StoreHydration />
         <main>{children}</main>
+        <footer className="border-t border-[#1F2937] mt-10 py-4 text-center text-xs text-[#6B7280]">
+          © Copyright SanchoDev 2026
+        </footer>
       </body>
     </html>
   );

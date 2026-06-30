@@ -15,8 +15,11 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   const scores = useWorldCupStore((s) => s.scores);
   const setScore = useWorldCupStore((s) => s.setScore);
   const getGroupTable = useWorldCupStore((s) => s.getGroupTable);
+  const getBestThirdsTeams = useWorldCupStore((s) => s.getBestThirdsTeams);
 
   const table = getGroupTable(group.id);
+  const bestThirds = getBestThirdsTeams();
+  const qualifyingThirdId = bestThirds.find((t) => t.groupId === group.id)?.teamId ?? null;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -32,7 +35,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
         <div className="px-4 py-3 border-b" style={{ borderColor: '#1F2937' }}>
           <h2 className="font-display font-semibold" style={{ color: '#F9FAFB' }}>Standings</h2>
         </div>
-        <GroupTable rows={table} />
+        <GroupTable rows={table} qualifyingThirdId={qualifyingThirdId} />
       </div>
 
       {/* Fixtures */}

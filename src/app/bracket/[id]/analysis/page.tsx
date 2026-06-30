@@ -1,17 +1,18 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { groups } from '@/data/groups';
+import { useWorldCupStore } from '@/store/worldcupStore';
 import { teams } from '@/data/teams';
 import FlagImage from '@/components/FlagImage';
 
-function findFixture(id: string) {
-  for (const group of groups) {
-    const fixture = group.fixtures.find((f) => f.id === id);
-    if (fixture) return { fixture, group };
-  }
-  return null;
-}
+const ROUND_LABEL: Record<string, string> = {
+  R32:  'Round of 32',
+  R16:  'Round of 16',
+  QF:   'Quarter-Finals',
+  SF:   'Semi-Finals',
+  F:    'World Cup Final',
+  '3rd':'Third-Place Match',
+};
 
 function WinProbBar({ home, draw, away, homeName, awayName }: {
   home: number; draw: number; away: number; homeName: string; awayName: string;
@@ -62,26 +63,31 @@ function extractProbabilities(text: string): { home: number; draw: number; away:
 }
 
 
-export default function AnalysisPage({ params }: { params: { id: string } }) {
+export default function BracketAnalysisPage({ params }: { params: { id: string } }) {
   const { id } = params;
-  const found = findFixture(id);
+  const bracket = useWorldCupStore((s) => s.bracket);
+  const hasHydrated = useWorldCupStore((s) => s._hasHydrated);
+  const match = bracket.find((m) => m.id === id) ?? null;
+
+  if (!hasHydrated) return null;
+
   const [analysis, setAnalysis] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [probs, setProbs] = useState<{ home: number; draw: number; away: number } | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  if (!found) {
+  if (!match || !match.homeTeam || !match.awayTeam) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 text-center" style={{ color: '#6B7280' }}>
-        Match not found.
+        Match not found or teams not yet determined.
       </div>
     );
   }
 
-  const { fixture, group } = found;
-  const homeTeam = teams[fixture.home];
-  const awayTeam = teams[fixture.away];
+  const homeTeam = teams[match.homeTeam];
+  const awayTeam = teams[match.awayTeam];
+  const roundLabel = ROUND_LABEL[match.round] ?? match.round;
 
   const runAnalysis = async () => {
     setLoading(true);
@@ -97,7 +103,7 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
 Context:
 ${homeTeam.name} — FIFA Rank: #${homeTeam.fifaRank}, Confederation: ${homeTeam.confederation}, Recent form (Win%): ${homeTeam.form}%, Goals scored avg: ${homeTeam.goalsScored}, Goals conceded avg: ${homeTeam.goalsConceded}, Possession avg: ${homeTeam.possession}%, Pass accuracy: ${homeTeam.passAccuracy}%
 ${awayTeam.name} — FIFA Rank: #${awayTeam.fifaRank}, Confederation: ${awayTeam.confederation}, Recent form (Win%): ${awayTeam.form}%, Goals scored avg: ${awayTeam.goalsScored}, Goals conceded avg: ${awayTeam.goalsConceded}, Possession avg: ${awayTeam.possession}%, Pass accuracy: ${awayTeam.passAccuracy}%
-Stage: ${group.name} — 2026 FIFA World Cup
+Stage: ${roundLabel} — 2026 FIFA World Cup Knockout Stage
 
 Provide exactly these sections:
 
@@ -170,11 +176,17 @@ Be bold, specific, and data-driven.`;
             <div className="text-sm font-bold" style={{ color: '#00FF85' }}>#{homeTeam.fifaRank} FIFA</div>
           </div>
 
-          {/* VS */}
+          {/* VS / Score */}
           <div className="flex flex-col items-center justify-center">
-            <div className="font-display text-4xl font-bold" style={{ color: '#1F2937' }}>VS</div>
-            <div className="text-xs mt-2" style={{ color: '#6B7280' }}>
-              {group.name} · {new Date(fixture.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            {match.homeGoals !== null && match.awayGoals !== null ? (
+              <div className="font-display text-4xl font-bold" style={{ color: '#F9FAFB' }}>
+                {match.homeGoals} <span style={{ color: '#4B5563' }}>–</span> {match.awayGoals}
+              </div>
+            ) : (
+              <div className="font-display text-4xl font-bold" style={{ color: '#1F2937' }}>VS</div>
+            )}
+            <div className="text-xs mt-2 text-center" style={{ color: '#6B7280' }}>
+              {roundLabel} · 2026 FIFA World Cup
             </div>
           </div>
 
@@ -246,7 +258,7 @@ Be bold, specific, and data-driven.`;
         {loading && !analysis && (
           <div className="space-y-3 animate-pulse">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-4 rounded" style={{ backgroundColor: '#1F2937', width: `${70 + Math.random() * 30}%` }}></div>
+              <div key={i} className="h-4 rounded" style={{ backgroundColor: '#1F2937', width: `${70 + (i * 7) % 30}%` }}></div>
             ))}
           </div>
         )}

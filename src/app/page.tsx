@@ -19,9 +19,6 @@ export default function HomePage() {
         ))}
       </div>
 
-      <div className="mt-8 text-center text-xs" style={{ color: '#6B7280' }}>
-        Click any group to enter scores · Scores auto-update standings · Click 🔍 ANALYSIS on any match for AI tactical breakdown
-      </div>
     </div>
   );
 }

@@ -36,8 +36,6 @@ export default function MatchCard({ fixture, score, onScoreChange }: Props) {
           {badge}
           <a
             href={`/match/${fixture.id}/analysis`}
-            target="_blank"
-            rel="noopener noreferrer"
             className="text-xs bg-accent/10 text-accent border border-accent/30 px-2 py-0.5 rounded hover:bg-accent/20 transition-colors font-medium"
           >
             🔍 ANALYSIS

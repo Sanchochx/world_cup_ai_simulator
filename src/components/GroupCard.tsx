@@ -12,7 +12,10 @@ interface Props {
 
 export default function GroupCard({ group }: Props) {
   const getGroupTable = useWorldCupStore((s) => s.getGroupTable);
+  const getBestThirdsTeams = useWorldCupStore((s) => s.getBestThirdsTeams);
   const table = getGroupTable(group.id);
+  const bestThirds = getBestThirdsTeams();
+  const qualifyingThirdId = bestThirds.find((t) => t.groupId === group.id)?.teamId ?? null;
 
   return (
     <Link href={`/groups/${group.id}`}>
@@ -25,16 +28,10 @@ export default function GroupCard({ group }: Props) {
         <div className="space-y-2 mb-4">
           {group.teams.map((teamId) => {
             const team = teams[teamId];
-            const row = table.find((r) => r.teamId === teamId);
             return (
-              <div key={teamId} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {team && <FlagImage code={team.flag} size={20} />}
-                  <span className="text-sm text-primary font-medium">{team?.name}</span>
-                </div>
-                {row && row.played > 0 && (
-                  <span className="text-xs font-bold text-accent">{row.pts} pts</span>
-                )}
+              <div key={teamId} className="flex items-center gap-2">
+                {team && <FlagImage code={team.flag} size={20} />}
+                <span className="text-sm text-primary font-medium">{team?.name}</span>
               </div>
             );
           })}
@@ -51,10 +48,10 @@ export default function GroupCard({ group }: Props) {
             </div>
             {table.map((row, i) => {
               const team = teams[row.teamId];
-              const highlight = i === 0 ? 'text-green-400' : i === 1 ? 'text-green-400' : i === 2 ? 'text-yellow-400' : 'text-muted';
+              const highlight = i < 2 ? 'text-green-400' : (i === 2 && qualifyingThirdId === row.teamId) ? 'text-yellow-400' : 'text-muted';
               return (
                 <div key={row.teamId} className={`grid grid-cols-5 text-[11px] px-1 py-0.5 ${highlight}`}>
-                  <span className="truncate flex items-center gap-1">{team && <FlagImage code={team.flag} size={20} />}{team?.name}</span>
+                  <span className="truncate flex items-center gap-1">{team && <FlagImage code={team.flag} size={20} />}{team?.id}</span>
                   <span className="text-center">{row.played}</span>
                   <span className="text-center">{row.won}</span>
                   <span className="text-center">{row.drawn}</span>

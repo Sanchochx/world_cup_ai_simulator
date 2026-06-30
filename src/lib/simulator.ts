@@ -1,4 +1,6 @@
 import { Group } from '@/data/groups';
+import { teams } from '@/data/teams';
+import { THIRD_PLACE_SLOT_MAP } from '@/data/bracket';
 
 export interface TeamRow {
   teamId: string;
@@ -112,14 +114,52 @@ export function getBestThirds(
       groupId,
       row: rows[2],
     }))
-    .filter((t) => t.teamId);
+    .filter((t) => t.teamId && t.row);
 
   return thirds
     .sort((a, b) => {
       if (b.row.pts !== a.row.pts) return b.row.pts - a.row.pts;
       if (b.row.gd !== a.row.gd) return b.row.gd - a.row.gd;
       if (b.row.gf !== a.row.gf) return b.row.gf - a.row.gf;
-      return 0;
+      const rankA = teams[a.teamId]?.fifaRank ?? 999;
+      const rankB = teams[b.teamId]?.fifaRank ?? 999;
+      return rankA - rankB;
     })
     .slice(0, 8);
+}
+
+// Returns a map of slot label → teamId for the 8 best thirds assigned to their bracket slots.
+// Uses backtracking (most-constrained slot first) so every slot gets a valid team.
+export function resolveBestThirds(
+  allGroupTables: { groupId: string; rows: TeamRow[] }[]
+): Record<string, string> {
+  const top8 = getBestThirds(allGroupTables);
+  const availableGroups = new Set(top8.map((t) => t.groupId));
+
+  // Sort slots most-constrained first to minimise backtracking
+  const slots = Object.entries(THIRD_PLACE_SLOT_MAP).sort(
+    (a, b) =>
+      a[1].filter((g) => availableGroups.has(g)).length -
+      b[1].filter((g) => availableGroups.has(g)).length
+  );
+
+  const result: Record<string, string> = {};
+
+  function assign(idx: number, usedGroups: Set<string>): boolean {
+    if (idx === slots.length) return true;
+    const [slot, allowedGroups] = slots[idx];
+    for (const team of top8) {
+      if (allowedGroups.includes(team.groupId) && !usedGroups.has(team.groupId)) {
+        usedGroups.add(team.groupId);
+        result[slot] = team.teamId;
+        if (assign(idx + 1, usedGroups)) return true;
+        usedGroups.delete(team.groupId);
+        delete result[slot];
+      }
+    }
+    return false;
+  }
+
+  assign(0, new Set());
+  return result;
 }
